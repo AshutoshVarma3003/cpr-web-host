@@ -3,155 +3,287 @@
 	<head>
 		<meta charset="utf-8">
 			<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-				<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-					<title>NCERT</title>
+				<title>Unity Web Player | CPR Third Person Simulation</title>
+				<link rel="shortcut icon" href="TemplateData/favicon.ico">
+					<link rel="stylesheet" href="TemplateData/style.css">
+						<style>
+							/* --- Fullscreen Prompt Banner (Top-Middle) --- */
+							#fullscreen-prompt {
+							position: fixed;
+							top: 14px;
+							left: 50%;
+							transform: translateX(-50%);
+							z-index: 9998;
+							display: flex;
+							align-items: center;
+							gap: 10px;
+							padding: 8px 14px 8px 12px;
+							background: rgba(15, 23, 42, 0.88);
+							backdrop-filter: blur(10px);
+							-webkit-backdrop-filter: blur(10px);
+							border: 1px solid rgba(255, 255, 255, 0.18);
+							border-radius: 30px;
+							color: #f8fafc;
+							font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+							font-size: 13.5px;
+							box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+							cursor: pointer;
+							user-select: none;
+							-webkit-user-select: none;
+							-webkit-tap-highlight-color: transparent;
+							transition: opacity 0.3s ease, transform 0.3s ease, background 0.2s;
+							max-width: 90vw;
+							}
 
-					<!-- Orientation Lock Script -->
-					<script>
-						function initOrientationLock() {
-						const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-						if (!isMobile) return;
+							#fullscreen-prompt:hover {
+							background: rgba(30, 41, 59, 0.95);
+							}
 
-						async function lockLandscape() {
-						try {
-						if (screen.orientation && screen.orientation.lock) {
-						await screen.orientation.lock('landscape');
-						}
-						} catch (error) {
-						console.warn('Orientation lock failed:', error);
-						}
-						}
+							#fullscreen-prompt:active {
+							transform: translateX(-50%) scale(0.97);
+							}
 
-						lockLandscape();
+							#fullscreen-prompt.hidden {
+							opacity: 0;
+							pointer-events: none;
+							transform: translateX(-50%) translateY(-12px);
+							}
 
-						window.addEventListener('orientationchange', lockLandscape);
-						document.addEventListener('visibilitychange', () => {
-						if (!document.hidden) lockLandscape();
-						});
-						}
+							.prompt-icon {
+							width: 18px;
+							height: 18px;
+							fill: #38bdf8;
+							flex-shrink: 0;
+							}
 
-						initOrientationLock();
-					</script>
+							.prompt-text {
+							line-height: 1.3;
+							white-space: nowrap;
+							overflow: hidden;
+							text-overflow: ellipsis;
+							}
 
-					<link rel="shortcut icon" href="TemplateData/favicon.ico">
-						<link rel="stylesheet" href="TemplateData/style.css">
-</head>
+							.prompt-text strong {
+							color: #38bdf8;
+							font-weight: 600;
+							}
+
+							.prompt-close {
+							background: transparent;
+							border: none;
+							color: rgba(255, 255, 255, 0.5);
+							font-size: 16px;
+							line-height: 1;
+							cursor: pointer;
+							padding: 2px 4px;
+							margin-left: 4px;
+							border-radius: 50%;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							transition: color 0.2s;
+							}
+
+							.prompt-close:hover {
+							color: #ffffff;
+							}
+
+							/* --- Floating Fullscreen Button (Top-Right) --- */
+							#floating-fullscreen-btn {
+							position: fixed;
+							top: 12px;
+							right: 12px;
+							z-index: 9999;
+							width: 44px;
+							height: 44px;
+							border-radius: 50%;
+							background: rgba(15, 23, 42, 0.65);
+							backdrop-filter: blur(8px);
+							-webkit-backdrop-filter: blur(8px);
+							border: 1px solid rgba(255, 255, 255, 0.25);
+							color: white;
+							cursor: pointer;
+							display: flex;
+							align-items: center;
+							justify-content: center;
+							padding: 0;
+							outline: none;
+							box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+							transition: background 0.2s, transform 0.1s;
+							-webkit-tap-highlight-color: transparent;
+							}
+
+							#floating-fullscreen-btn:active {
+							transform: scale(0.92);
+							background: rgba(15, 23, 42, 0.9);
+							}
+
+							#floating-fullscreen-btn svg {
+							width: 22px;
+							height: 22px;
+							fill: white;
+							pointer-events: none;
+							}
+						</style>
+					</head>
 	<body>
-		<div id="portrait-warning" class="portrait-warning">
-			<div class="warning-content">
-				<div class="warning-text">
-					This simulation is designed for landscape mode.<br>
-        Please rotate your device for the best experience.
-      </div>
-			</div>
+		<!-- Top-Middle Fullscreen Banner Prompt -->
+		<div id="fullscreen-prompt" title="Click to enter Fullscreen">
+			<svg class="prompt-icon" viewBox="0 0 24 24">
+				<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+			</svg>
+			<span class="prompt-text">
+				For the best experience, play in <strong>Fullscreen</strong>
+			</span>
+			<button class="prompt-close" id="prompt-close-btn" title="Dismiss">&times;</button>
 		</div>
 
-		<div id="fullscreen-note-container">
-			<div id="fullscreen-note">Double-click the screen for full-screen mode</div>
-		</div>
+		<!-- Floating Top-Right Fullscreen Button -->
+		<button id="floating-fullscreen-btn" title="Toggle Fullscreen">
+			<svg viewBox="0 0 24 24">
+				<path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+			</svg>
+		</button>
+
 		<div id="unity-container" class="unity-desktop">
-			<canvas id="unity-canvas" width="1280" height="720" tabindex="-1"></canvas>
+			<canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
 			<div id="unity-loading-bar">
 				<div id="unity-logo"></div>
 				<div id="unity-progress-bar-empty">
 					<div id="unity-progress-bar-full"></div>
 				</div>
 			</div>
-			<div id="unity-warning"></div>
+			<div id="unity-warning"> </div>
+			<div id="unity-footer">
+				<div id="unity-logo-title-footer"></div>
+				<div id="unity-fullscreen-button"></div>
+				<div id="unity-build-title">CPR Third Person Simulation</div>
+			</div>
 		</div>
 		<script>
-			var container = document.querySelector("#unity-container");
 			var canvas = document.querySelector("#unity-canvas");
-			var loadingBar = document.querySelector("#unity-loading-bar");
-			var progressBarFull = document.querySelector("#unity-progress-bar-full");
-			var fullscreenNote = document.querySelector("#fullscreen-note");
-			var portraitWarning = document.querySelector("#portrait-warning");
-			var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-			var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-			var noteTimeout;
-			var hasShownInitialNote = false;
-			var unityInstance = null;
 
-			// Hide fullscreen note container completely for iOS devices
-			if (isIOS) {
-			document.getElementById('fullscreen-note-container').style.display = 'none';
+			function unityShowBanner(msg, type) {
+			var warningBanner = document.querySelector("#unity-warning");
+			function updateBannerVisibility() {
+			warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+			}
+			var div = document.createElement('div');
+			div.innerHTML = msg;
+			warningBanner.appendChild(div);
+			if (type == 'error') div.style = 'background: red; padding: 10px;';
+			else {
+			if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+			setTimeout(function() {
+			warningBanner.removeChild(div);
+			updateBannerVisibility();
+			}, 5000);
+			}
+			updateBannerVisibility();
 			}
 
-			function resizeCanvas() {
-			let displayWidth = container.clientWidth;
-			let displayHeight = container.clientHeight;
-			const targetRatio = 1280 / 720;
-			let width, height;
+			var buildUrl = "Build";
+			var loaderUrl = buildUrl + "/cpr web host.loader.js";
+			var config = {
+			arguments: [],
+			dataUrl: buildUrl + "/cpr web host.data.unityweb",
+			frameworkUrl: buildUrl + "/cpr web host.framework.js.unityweb",
+			codeUrl: buildUrl + "/cpr web host.wasm.unityweb",
+			streamingAssetsUrl: "StreamingAssets",
+			companyName: "AmmachiLabs",
+			productName: "CPR Third Person Simulation",
+			productVersion: "0.1.0",
+			showBanner: unityShowBanner,
+			};
 
-			if (displayWidth / displayHeight > targetRatio) {
-			height = displayHeight;
-			width = height * targetRatio;
+			if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+			var meta = document.createElement('meta');
+			meta.name = 'viewport';
+			meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+			document.getElementsByTagName('head')[0].appendChild(meta);
+			document.querySelector("#unity-container").className = "unity-mobile";
+			canvas.className = "unity-mobile";
 			} else {
-			width = displayWidth;
-			height = width / targetRatio;
+			canvas.style.width = "960px";
+			canvas.style.height = "600px";
 			}
 
-			canvas.style.width = width + 'px';
-			canvas.style.height = height + 'px';
+			document.querySelector("#unity-loading-bar").style.display = "block";
+
+			var script = document.createElement("script");
+			script.src = loaderUrl;
+			script.onload = () => {
+			createUnityInstance(canvas, config, (progress) => {
+			document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+			}).then((unityInstance) => {
+			document.querySelector("#unity-loading-bar").style.display = "none";
+
+			var promptBanner = document.querySelector("#fullscreen-prompt");
+			var closeBtn = document.querySelector("#prompt-close-btn");
+			var floatingBtn = document.querySelector("#floating-fullscreen-btn");
+			var footerBtn = document.querySelector("#unity-fullscreen-button");
+			var userDismissed = false;
+
+			// Helper to check if currently in fullscreen
+			function isFullscreenActive() {
+			return !!(document.fullscreenElement ||
+			document.webkitFullscreenElement ||
+			document.mozFullScreenElement ||
+			document.msFullscreenElement);
 			}
 
-			function hideNote() {
-			fullscreenNote.style.opacity = '0';
-			}
-
-			function showNote() {
-			if (!isIOS) {  // Only show note if not on iOS
-			fullscreenNote.style.opacity = '1';
-			if (noteTimeout) clearTimeout(noteTimeout);
-			noteTimeout = setTimeout(hideNote, 5000);
-			}
-			}
-
-			if (isMobile && !isIOS) {  // Only change text for mobile devices that aren't iOS
-			fullscreenNote.textContent = "Double-tap the screen for full-screen mode";
-			}
-
-			// Only add double-click listener if not on iOS
-			if (!isIOS) {
-			canvas.addEventListener('dblclick', function() {
-			if (unityInstance) {
-			unityInstance.SetFullscreen(1);
-			}
-			});
-			}
-
-			// Only add touch events for mobile devices that aren't iOS
-			if (isMobile && !isIOS) {
-			let lastTap = 0;
-			canvas.addEventListener('touchend', function(e) {
-			const currentTime = new Date().getTime();
-			const tapLength = currentTime - lastTap;
-			if (tapLength < 500 && tapLength > 0) {
-			if (unityInstance) {
-			unityInstance.SetFullscreen(1);
-			}
-			e.preventDefault();
-			}
-			lastTap = currentTime;
-			});
-			}
-
-			document.addEventListener('fullscreenchange', function() {
-			if (!isIOS) {  // Only handle fullscreen changes if not on iOS
-			if (document.fullscreenElement) {
-			hideNote();
+			// Update banner visibility based on fullscreen state
+			function updateBanner() {
+			if (isFullscreenActive() || userDismissed) {
+			promptBanner.classList.add("hidden");
 			} else {
-			showNote();
+			promptBanner.classList.remove("hidden");
 			}
 			}
-			});
 
-			resizeCanvas();
-			window.addEventListener('resize', () => {
-			requestAnimationFrame(resizeCanvas);
-			});
+			// Fullscreen toggle function
+			function toggleFullscreen() {
+			if (!isFullscreenActive()) {
+			unityInstance.SetFullscreen(1);
+			} else {
+			unityInstance.SetFullscreen(0);
+			}
+			}
 
-			loadingBar.style.display = "block";
+			// Button click events
+			floatingBtn.onclick = toggleFullscreen;
+			footerBtn.onclick = toggleFullscreen;
+
+			// Tapping the banner enters fullscreen
+			promptBanner.onclick = (e) => {
+			if (e.target !== closeBtn) {
+			toggleFullscreen();
+			}
+			};
+
+			// Close button on banner
+			closeBtn.onclick = (e) => {
+			e.stopPropagation();
+			userDismissed = true;
+			updateBanner();
+			};
+
+			// Listen for browser fullscreen changes
+			document.addEventListener('fullscreenchange', updateBanner);
+			document.addEventListener('webkitfullscreenchange', updateBanner);
+			document.addEventListener('mozfullscreenchange', updateBanner);
+			document.addEventListener('MSFullscreenChange', updateBanner);
+
+			// Initial check
+			updateBanner();
+
+			}).catch((message) => {
+			alert(message);
+			});
+			};
+
+			document.body.appendChild(script);
+
 		</script>
 	</body>
 </html>
